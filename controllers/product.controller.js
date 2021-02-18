@@ -122,7 +122,7 @@ const remove = async (req, res) => {
 
 const search = async (req, res) => {
   try {
-    const { body, statusCode } = await client.search({
+    const { body } = await client.search({
       index,
       body: {
         query: {
