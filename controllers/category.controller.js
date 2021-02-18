@@ -11,6 +11,9 @@ const getAll = async (req, res) => {
     return res.json(body.hits.hits);
   } catch (err) {
     console.log(err.message);
+    if (err.meta.statusCode === 404) {
+      return res.status(404).json({ message: 'Index not found!' });
+    }
     return res.status(500).send('Server Error');
   }
 };
@@ -30,6 +33,9 @@ const getById = async (req, res) => {
       });
   } catch (err) {
     console.log(err.message);
+    if (err.meta.statusCode === 404) {
+      return res.status(404).json({ message: 'Index not found!' });
+    }
     return res.status(500).send('Server Error');
   }
 };
@@ -52,6 +58,9 @@ const create = async (req, res) => {
       });
   } catch (err) {
     console.log(err.message);
+    if (err.meta.statusCode === 404) {
+      return res.status(404).json({ message: 'Index not found!' });
+    }
     return res.status(500).send('Server Error');
   }
 };
@@ -73,10 +82,16 @@ const edit = async (req, res) => {
         return res.json({ message: 'Edited successfully!' });
       })
       .catch((err) => {
+        if (err.statusCode === 404) {
+          return res.status(404).json({ message: 'Not Found!' });
+        }
         return res.json({ message: 'Edited fail!' });
       });
   } catch (err) {
     console.log(err.message);
+    if (err.meta.statusCode === 404) {
+      return res.status(404).json({ message: 'Index not found!' });
+    }
     return res.status(500).send('Server Error');
   }
 };
@@ -92,10 +107,16 @@ const remove = async (req, res) => {
         return res.json({ message: 'Deleted successfully!' });
       })
       .catch((err) => {
+        if (err.statusCode === 404) {
+          return res.status(404).json({ message: 'Not Found!' });
+        }
         return res.json({ message: 'Deleted fail!' });
       });
   } catch (err) {
     console.log(err.message);
+    if (err.meta.statusCode === 404) {
+      return res.status(404).json({ message: 'Index not found!' });
+    }
     return res.status(500).send('Server Error');
   }
 };
@@ -106,10 +127,9 @@ const search = async (req, res) => {
       index,
       body: {
         query: {
-          match: {
+          wildcard: {
             categoryName: {
-              query: req.query.q,
-              fuzziness: 2,
+              value: `${req.query.q}*`,
             },
           },
         },
@@ -118,6 +138,9 @@ const search = async (req, res) => {
     return res.json(body.hits.hits);
   } catch (err) {
     console.log(err.message);
+    if (err.meta.statusCode === 404) {
+      return res.status(404).json({ message: 'Index not found!' });
+    }
     return res.status(500).send('Server Error');
   }
 };

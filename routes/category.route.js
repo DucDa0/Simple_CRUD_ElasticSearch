@@ -10,8 +10,8 @@ const {
 } = require('../controllers/category.controller');
 
 router.get('/', getAll);
-// router.get('/:id', getById);
 router.get('/search', search);
+router.get('/:id', getById);
 router.post('/', create);
 router.put('/:id', edit);
 router.delete('/:id', remove);
