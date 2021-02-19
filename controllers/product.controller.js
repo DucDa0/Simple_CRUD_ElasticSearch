@@ -2,6 +2,7 @@ const { Client } = require('@elastic/elasticsearch');
 const client = new Client({ node: 'http://localhost:9200' });
 
 const index = 'product-index';
+const type = 'product';
 
 const getAll = async (req, res) => {
   try {
@@ -28,8 +29,6 @@ const getByCatId = async (req, res) => {
     await client
       .search({
         index,
-        from: 0,
-        size: 6,
         body: {
           query: {
             match: {

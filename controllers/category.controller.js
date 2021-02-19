@@ -1,7 +1,9 @@
 const { Client } = require('@elastic/elasticsearch');
 const client = new Client({ node: 'http://localhost:9200' });
+const insertDoc = require('../ultils/insertDoc');
 
 const index = 'category-index';
+const type = 'category';
 
 const getAll = async (req, res) => {
   try {
@@ -47,16 +49,11 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   const { categoryName } = req.body;
-  const created = Date.now();
+  // const created = Date.now();
   try {
-    await client
-      .index({
-        index,
-        body: {
-          categoryName,
-          created,
-        },
-      })
+    await insertDoc(index, type, {
+      categoryName,
+    })
       .then((response) => {
         return res.json({
           message: 'Created successfully!',
@@ -66,6 +63,23 @@ const create = async (req, res) => {
       .catch((err) => {
         return res.json({ message: 'Created fail!' });
       });
+    // await client
+    //   .index({
+    //     index,
+    //     body: {
+    //       categoryName,
+    //       created,
+    //     },
+    //   })
+    //   .then((response) => {
+    //     return res.json({
+    //       message: 'Created successfully!',
+    //       data: { _id: response.body._id, _source: { categoryName } },
+    //     });
+    //   })
+    //   .catch((err) => {
+    //     return res.json({ message: 'Created fail!' });
+    //   });
   } catch (err) {
     console.log(err.message);
     if (err.meta.statusCode === 404) {
