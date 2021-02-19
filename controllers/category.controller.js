@@ -5,15 +5,20 @@ const index = 'category-index';
 
 const getAll = async (req, res) => {
   try {
-    const { body } = await client.search({
-      index,
-    });
-    return res.json(body.hits.hits);
+    await client
+      .search({
+        index,
+      })
+      .then((response) => {
+        return res.json(response.body.hits.hits);
+      })
+      .catch((err) => {
+        if (err.statusCode === 404) {
+          return res.json([]);
+        }
+      });
   } catch (err) {
     console.log(err.message);
-    if (err.meta.statusCode === 404) {
-      return res.status(404).json({ message: 'Index not found!' });
-    }
     return res.status(500).send('Server Error');
   }
 };
@@ -42,16 +47,21 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   const { categoryName } = req.body;
+  const created = Date.now();
   try {
     await client
       .index({
         index,
         body: {
           categoryName,
+          created,
         },
       })
       .then((response) => {
-        return res.json({ message: 'Created successfully!' });
+        return res.json({
+          message: 'Created successfully!',
+          data: { _id: response.body._id, _source: { categoryName } },
+        });
       })
       .catch((err) => {
         return res.json({ message: 'Created fail!' });
@@ -123,24 +133,29 @@ const remove = async (req, res) => {
 
 const search = async (req, res) => {
   try {
-    const { body } = await client.search({
-      index,
-      body: {
-        query: {
-          wildcard: {
-            categoryName: {
-              value: `${req.query.q}*`,
+    await client
+      .search({
+        index,
+        body: {
+          query: {
+            wildcard: {
+              categoryName: {
+                value: `*${req.query.q}*`,
+              },
             },
           },
         },
-      },
-    });
-    return res.json(body.hits.hits);
+      })
+      .then((response) => {
+        return res.json(response.body.hits.hits);
+      })
+      .catch((err) => {
+        if (err.statusCode === 404) {
+          return res.json([]);
+        }
+      });
   } catch (err) {
     console.log(err.message);
-    if (err.meta.statusCode === 404) {
-      return res.status(404).json({ message: 'Index not found!' });
-    }
     return res.status(500).send('Server Error');
   }
 };

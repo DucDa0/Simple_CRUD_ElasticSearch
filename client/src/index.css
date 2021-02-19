@@ -20,7 +20,7 @@
 }
 
 body {
-  font-family: "Muli", sans-serif !important;
+  font-family: 'Muli', sans-serif !important;
   font-size: 1rem !important;
   line-height: 1.6 !important;
   color: var(--dark-second-color) !important;
@@ -30,5 +30,5 @@ body {
   max-width: 1200px;
   margin: 10rem auto 3rem auto;
   overflow: hidden;
-  padding: 0 1rem;
+  padding: 1rem;
 }
