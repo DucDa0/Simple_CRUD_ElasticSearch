@@ -5,7 +5,7 @@ const {
   getByCatId,
   getById,
   create,
-  edit,
+  update,
   remove,
   search,
 } = require('../controllers/product.controller');
@@ -15,7 +15,7 @@ router.get('/search', search);
 router.get('/cat/:id', getByCatId);
 router.get('/:id', getById);
 router.post('/', create);
-router.put('/:id', edit);
+router.put('/:id', update);
 router.delete('/:id', remove);
 
 module.exports = router;

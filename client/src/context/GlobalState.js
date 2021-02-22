@@ -12,6 +12,7 @@ import {
 const initialState = {
   categories: [],
   products: [],
+  count: 0,
 };
 
 export const GlobalContext = createContext(initialState);
@@ -19,44 +20,40 @@ export const GlobalContext = createContext(initialState);
 export const GlobalProvider = ({ children }) => {
   const [state, dispatch] = useReducer(AppReducer, initialState);
 
-  const getCategories = async (payload) => {
-    try {
-      dispatch({
-        type: GET_CATEGORIES,
-        payload,
-      });
-    } catch (err) {}
+  const getCategories = (payload) => {
+    dispatch({
+      type: GET_CATEGORIES,
+      payload,
+    });
   };
 
-  const createCategories = async (payload) => {
+  const createCategories = (payload) => {
     dispatch({
       type: CREATE_CATEGORIES,
       payload,
     });
   };
 
-  const getProducts = async (payload) => {
-    try {
-      dispatch({
-        type: GET_PRODUCTS,
-        payload,
-      });
-    } catch (err) {}
+  const getProducts = (payload) => {
+    dispatch({
+      type: GET_PRODUCTS,
+      payload,
+    });
   };
 
-  const createProducts = async (payload) => {
+  const createProducts = (payload) => {
     dispatch({
       type: CREATE_PRODUCTS,
       payload,
     });
   };
-  const removeProducts = async (payload) => {
+  const removeProducts = (payload) => {
     dispatch({
       type: REMOVE_PRODUCTS,
       payload,
     });
   };
-  const editProducts = async (payload) => {
+  const editProducts = (payload) => {
     dispatch({
       type: EDIT_PRODUCTS,
       payload,
@@ -67,6 +64,7 @@ export const GlobalProvider = ({ children }) => {
       value={{
         categories: state.categories,
         products: state.products,
+        count: state.count,
         getCategories,
         createCategories,
         getProducts,

@@ -4,7 +4,7 @@ const {
   getAll,
   getById,
   create,
-  edit,
+  update,
   remove,
   search,
 } = require('../controllers/category.controller');
@@ -13,7 +13,7 @@ router.get('/', getAll);
 router.get('/search', search);
 router.get('/:id', getById);
 router.post('/', create);
-router.put('/:id', edit);
+router.put('/:id', update);
 router.delete('/:id', remove);
 
 module.exports = router;

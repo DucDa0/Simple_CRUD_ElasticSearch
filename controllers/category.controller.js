@@ -1,16 +1,30 @@
-const { Client } = require('@elastic/elasticsearch');
-const client = new Client({ node: 'http://localhost:9200' });
-const insertDoc = require('../ultils/insertDoc');
+const {
+  getDocs,
+  getDocById,
+  createDoc,
+  updateDoc,
+  removeDoc,
+  searchDoc,
+} = require('../utils/actionsDoc');
 
 const index = 'category-index';
 const type = 'category';
 
 const getAll = async (req, res) => {
   try {
-    await client
-      .search({
-        index,
-      })
+    await getDocs(
+      index,
+      type
+      //   {
+      //   sort: [
+      //     {
+      //       'categoryName.keyword': {
+      //         order: 'desc',
+      //       },
+      //     },
+      //   ],
+      // }
+    )
       .then((response) => {
         return res.json(response.body.hits.hits);
       })
@@ -27,11 +41,7 @@ const getAll = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    await client
-      .get({
-        id: req.params.id,
-        index,
-      })
+    await getDocById(index, type, id)
       .then((response) => {
         return res.json(response.body._source);
       })
@@ -49,10 +59,10 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   const { categoryName } = req.body;
-  // const created = Date.now();
   try {
-    await insertDoc(index, type, {
+    await createDoc(index, type, {
       categoryName,
+      created: Date.now(),
     })
       .then((response) => {
         return res.json({
@@ -63,23 +73,6 @@ const create = async (req, res) => {
       .catch((err) => {
         return res.json({ message: 'Created fail!' });
       });
-    // await client
-    //   .index({
-    //     index,
-    //     body: {
-    //       categoryName,
-    //       created,
-    //     },
-    //   })
-    //   .then((response) => {
-    //     return res.json({
-    //       message: 'Created successfully!',
-    //       data: { _id: response.body._id, _source: { categoryName } },
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     return res.json({ message: 'Created fail!' });
-    //   });
   } catch (err) {
     console.log(err.message);
     if (err.meta.statusCode === 404) {
@@ -89,27 +82,25 @@ const create = async (req, res) => {
   }
 };
 
-const edit = async (req, res) => {
+const update = async (req, res) => {
   const { categoryName } = req.body;
   try {
-    await client
-      .update({
-        index,
-        id: req.params.id,
-        body: {
-          doc: {
-            categoryName,
-          },
-        },
-      })
+    await updateDoc(
+      index,
+      type,
+      {
+        categoryName,
+      },
+      req.params.id
+    )
       .then((response) => {
-        return res.json({ message: 'Edited successfully!' });
+        return res.json({ message: 'Updated successfully!' });
       })
       .catch((err) => {
         if (err.statusCode === 404) {
           return res.status(404).json({ message: 'Not Found!' });
         }
-        return res.json({ message: 'Edited fail!' });
+        return res.json({ message: 'Updated fail!' });
       });
   } catch (err) {
     console.log(err.message);
@@ -122,11 +113,7 @@ const edit = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    await client
-      .delete({
-        index,
-        id: req.params.id,
-      })
+    await removeDoc(index, type, req.params.id)
       .then((response) => {
         return res.json({ message: 'Deleted successfully!' });
       })
@@ -147,19 +134,15 @@ const remove = async (req, res) => {
 
 const search = async (req, res) => {
   try {
-    await client
-      .search({
-        index,
-        body: {
-          query: {
-            wildcard: {
-              categoryName: {
-                value: `*${req.query.q}*`,
-              },
-            },
+    await searchDoc(index, type, {
+      query: {
+        wildcard: {
+          categoryName: {
+            value: `*${req.query.q}*`,
           },
         },
-      })
+      },
+    })
       .then((response) => {
         return res.json(response.body.hits.hits);
       })
@@ -174,4 +157,4 @@ const search = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, edit, remove, search };
+module.exports = { getAll, getById, create, update, remove, search };

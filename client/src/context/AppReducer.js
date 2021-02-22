@@ -22,7 +22,8 @@ export default (state, { type, payload }) => {
     case GET_PRODUCTS:
       return {
         ...state,
-        products: payload,
+        products: payload.data,
+        count: payload.count,
       };
     case CREATE_PRODUCTS:
       return {

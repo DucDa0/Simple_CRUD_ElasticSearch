@@ -1,15 +1,19 @@
-const { Client } = require('@elastic/elasticsearch');
-const client = new Client({ node: 'http://localhost:9200' });
+const {
+  getDocs,
+  getDocById,
+  createDoc,
+  updateDoc,
+  removeDoc,
+  searchDoc,
+  countDocs,
+} = require('../utils/actionsDoc');
 
 const index = 'product-index';
 const type = 'product';
 
 const getAll = async (req, res) => {
   try {
-    await client
-      .search({
-        index,
-      })
+    await getDocs(index, type)
       .then((response) => {
         return res.json(response.body.hits.hits);
       })
@@ -25,20 +29,30 @@ const getAll = async (req, res) => {
 };
 
 const getByCatId = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
   try {
-    await client
-      .search({
-        index,
-        body: {
-          query: {
-            match: {
-              categoryId: req.params.id,
-            },
+    const { body } = await countDocs(index, type);
+    await searchDoc(
+      index,
+      type,
+      {
+        query: {
+          match: {
+            categoryId: req.params.id,
           },
         },
-      })
+        sort: [
+          {
+            created: {
+              order: 'desc',
+            },
+          },
+        ],
+      },
+      page
+    )
       .then((response) => {
-        return res.json(response.body.hits.hits);
+        return res.json({ data: response.body.hits.hits, count: body.count });
       })
       .catch((err) => {
         if (err.statusCode === 404) {
@@ -53,11 +67,7 @@ const getByCatId = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    await client
-      .get({
-        id: req.params.id,
-        index,
-      })
+    await getDocById(index, type, id)
       .then((response) => {
         return res.json(response.body._source);
       })
@@ -75,18 +85,13 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   const { productName, price, categoryId } = req.body;
-  const created = Date.now();
   try {
-    await client
-      .index({
-        index,
-        body: {
-          productName,
-          price,
-          categoryId,
-          created,
-        },
-      })
+    await createDoc(index, type, {
+      productName,
+      price,
+      categoryId,
+      created: Date.now(),
+    })
       .then((response) => {
         return res.json({
           message: 'Created successfully!',
@@ -105,24 +110,22 @@ const create = async (req, res) => {
   }
 };
 
-const edit = async (req, res) => {
+const update = async (req, res) => {
   const { productName, price, categoryId } = req.body;
   try {
-    await client
-      .update({
-        index,
-        id: req.params.id,
-        body: {
-          doc: {
-            productName,
-            price,
-            categoryId,
-          },
-        },
-      })
+    await updateDoc(
+      index,
+      type,
+      {
+        productName,
+        price,
+        categoryId,
+      },
+      req.params.id
+    )
       .then((response) => {
         return res.json({
-          message: 'Edited successfully!',
+          message: 'Updated successfully!',
           data: {
             _id: response.body._id,
             _source: { productName, price, categoryId },
@@ -133,7 +136,7 @@ const edit = async (req, res) => {
         if (err.statusCode === 404) {
           return res.status(404).json({ message: 'Not Found!' });
         }
-        return res.json({ message: 'Edited fail!' });
+        return res.json({ message: 'Updated fail!' });
       });
   } catch (err) {
     console.log(err.message);
@@ -146,11 +149,7 @@ const edit = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    await client
-      .delete({
-        index,
-        id: req.params.id,
-      })
+    await removeDoc(index, type, req.params.id)
       .then((response) => {
         return res.json({ message: 'Deleted successfully!' });
       })
@@ -170,22 +169,43 @@ const remove = async (req, res) => {
 };
 
 const search = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
   try {
-    await client
-      .search({
-        index,
-        body: {
-          query: {
-            wildcard: {
-              productName: {
-                value: `*${req.query.q}*`,
-              },
+    const { body } = await countDocs(index, type, {
+      query: {
+        wildcard: {
+          productName: {
+            value: `*${req.query.q}*`,
+          },
+        },
+      },
+    });
+    await searchDoc(
+      index,
+      type,
+      {
+        query: {
+          wildcard: {
+            productName: {
+              value: `*${req.query.q}*`,
             },
           },
         },
-      })
+        sort: [
+          {
+            created: {
+              order: 'desc',
+            },
+          },
+        ],
+      },
+      page
+    )
       .then((response) => {
-        return res.json(response.body.hits.hits);
+        return res.json({
+          data: response.body.hits.hits,
+          count: body.count,
+        });
       })
       .catch((err) => {
         if (err.statusCode === 404) {
@@ -193,8 +213,17 @@ const search = async (req, res) => {
         }
       });
   } catch (err) {
+    console.log(err.message);
     return res.status(500).send('Server Error');
   }
 };
 
-module.exports = { getAll, getByCatId, getById, create, edit, remove, search };
+module.exports = {
+  getAll,
+  getByCatId,
+  getById,
+  create,
+  update,
+  remove,
+  search,
+};

@@ -1,7 +1,7 @@
 const { Client } = require('@elastic/elasticsearch');
 const client = new Client({ node: 'http://localhost:9200' });
 
-const createIndex = async function (req, res) {
+const createIndex = async (req, res) => {
   const { indexName } = req.body;
   try {
     await client.indices
@@ -19,7 +19,7 @@ const createIndex = async function (req, res) {
     return res.status(500).send('Server Error');
   }
 };
-const addmappingToIndex = async function (req, res) {
+const addmappingToIndex = async (req, res) => {
   const { indexName, mappingType, mapping } = req.body;
   try {
     await client.indices
